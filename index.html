@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Fashion MNIST</title>
+    <style>
+    canvas {
+      border: 1px solid black;
+    }
+    #text {
+      display: none;
+    }
+    </style>
+  </head>
+  <body>
+    <div>
+      <canvas id="drawingPad" height="100" width="100"></canvas>
+    </div>
+    <div>
+      <button id="next">Next</button>
+    </div>
+    <div id="text">
+      <p>Neural Network predicted answers:</p>
+      <ul id="recognizedResult"></ul>
+      <p>Actual answer: <strong><span id="actualResult"></span></strong>.</p>
+      <p>Current score: <span id="scoreResult"></span></p>
+    </div>
+    <script src="data.js"></script>
+    <script src="recognize.js"></script>
+    <script>
+    window.onload = function () {
+      let canvas = document.getElementById("drawingPad"),
+          context = canvas.getContext("2d"),
+          recognizedResult = document.getElementById("recognizedResult"),
+          actualResult = document.getElementById("actualResult"),
+          scoreResult = document.getElementById("scoreResult"),
+          convert = ["T-shirt/top", "Trousers", "Pullover", "Dress", "Coat", "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"],
+          score = [0, 0];
+      nextPic();
+
+      document.getElementById("text").style.display = "block";
+      document.getElementById("next").onclick = nextPic;
+
+      function nextPic() {
+        let random = Math.floor(Math.random() * data.length),
+            img = data[random].input,
+            output = data[random].output,
+            predictedOutput = recognize(img).map((a, i) => [i, a]).sort((a, b) => b[1] - a[1]);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < img.length; ++i) {
+          context.fillStyle = `rgb(${Math.round((1 - img[i]) * 127.5)}, ${Math.round((1 - img[i]) * 127.5)}, ${Math.round((1 - img[i]) * 127.5)})`;
+          context.fillRect((i % 28) * canvas.width / 28, Math.floor(i / 28) * canvas.height / 28, canvas.width / 28, canvas.height / 28);
+        }
+        recognizedResult.innerHTML = "";
+        for (let i = 0; i < predictedOutput.length; ++i) {
+          recognizedResult.innerHTML += `<li>${convert[predictedOutput[i][0]]} with ${Math.round(predictedOutput[i][1] * 10000) / 100}% confidence</li>`;
+        }
+        actualResult.innerText = convert[output.indexOf(1)];
+        if (predictedOutput[0][0] === output.indexOf(1)) {
+          actualResult.style.color = "green";
+          ++score[0];
+        } else {
+          actualResult.style.color = "red";
+        }
+        ++score[1];
+        scoreResult.innerText = `${score[0]} / ${score[1]} = ${Math.round(score[0] / score[1] * 10000) / 100}%`;
+      }
+    }
+    </script>
+  </body>
+</html>
